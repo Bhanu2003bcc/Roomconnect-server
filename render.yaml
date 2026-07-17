@@ -2,7 +2,7 @@ services:
   # ── Backend API ────────────────────────────────────────────────────────────
   - type: web
     name: roomconnect-server
-    env: docker                        # Java apps require Docker on Render
+    runtime: docker
     plan: free
     envVars:
       # ── Database (individual properties → assembled as JDBC URL in app-prod.yml)
