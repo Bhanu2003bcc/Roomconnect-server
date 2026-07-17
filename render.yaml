@@ -6,15 +6,19 @@ services:
     buildCommand: ./mvnw clean package -DskipTests
     startCommand: java -jar target/roomconnect-server-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
     envVars:
+      - key: JAVA_VERSION
+        value: "21"
       - key: DATABASE_URL
         fromDatabase:
           name: roomconnect-db
-          property: connectionString
+          property: jdbcConnectionString
       - key: REDIS_URL
         fromService:
           type: redis
           name: roomconnect-redis
           property: connectionString
+      - key: JWT_SECRET
+        sync: false  # Paste a secure base64 value in the Render dashboard
       - key: TWILIO_ACCOUNT_SID
         value: placeholder
       - key: TWILIO_AUTH_TOKEN
