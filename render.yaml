@@ -1,47 +1,58 @@
 services:
+  # ── Backend API ────────────────────────────────────────────────────────────
   - type: web
     name: roomconnect-server
-    env: java
+    runtime: java
     plan: free
     buildCommand: ./mvnw clean package -DskipTests
     startCommand: java -jar target/roomconnect-server-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
     envVars:
       - key: JAVA_VERSION
         value: "21"
+
+      # Injected automatically from the database declared below
       - key: DATABASE_URL
         fromDatabase:
           name: roomconnect-db
           property: jdbcConnectionString
+
+      # Injected automatically from the redis service declared below
       - key: REDIS_URL
         fromService:
           type: redis
           name: roomconnect-redis
           property: connectionString
-      - key: JWT_SECRET
-        sync: false  # Paste a secure base64 value in the Render dashboard
-      - key: TWILIO_ACCOUNT_SID
-        value: placeholder
-      - key: TWILIO_AUTH_TOKEN
-        value: placeholder
-      - key: TWILIO_FROM_NUMBER
-        value: placeholder
-      - key: RESEND_API_KEY
-        value: placeholder
-      - key: R2_ENDPOINT
-        value: placeholder
-      - key: R2_ACCESS_KEY
-        value: placeholder
-      - key: R2_SECRET_KEY
-        value: placeholder
-      - key: R2_BUCKET_NAME
-        value: placeholder
 
+      # Auto-generated secure random value on first deploy; rotate manually if needed
+      - key: JWT_SECRET
+        generateValue: true
+
+      # --- Fill these in the Render dashboard before deploying ---
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
+      - key: R2_ACCESS_KEY
+        sync: false
+      - key: R2_SECRET_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+
+  # ── Redis (must be under services, not a top-level redis: block) ───────────
+  - type: redis
+    name: roomconnect-redis
+    plan: free
+    ipAllowList: []   # empty = internal access only (other Render services in same project)
+
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
 databases:
   - name: roomconnect-db
     plan: free
     postgresMajorVersion: "16"
-
-redis:
-  - name: roomconnect-redis
-    plan: free
-    ipAllowList: [] # empty means only internal access allowed
