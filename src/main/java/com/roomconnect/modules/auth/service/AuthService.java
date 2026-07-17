@@ -6,6 +6,7 @@ import com.roomconnect.modules.auth.entity.Role;
 import com.roomconnect.modules.auth.entity.User;
 import com.roomconnect.modules.auth.repository.OtpRequestRepository;
 import com.roomconnect.modules.auth.repository.UserRepository;
+import com.roomconnect.modules.notifications.service.NotificationService;
 import com.roomconnect.modules.users.entity.OwnerProfile;
 import com.roomconnect.modules.users.entity.VisitorProfile;
 import com.roomconnect.modules.users.repository.OwnerProfileRepository;
@@ -44,6 +45,9 @@ public class AuthService {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final Random random = new Random();
 
@@ -113,13 +117,16 @@ public class AuthService {
 
         otpRequestRepository.save(otpRequest);
 
-        // DEV/TEST output
+        // DEV: also log to terminal for quick testing
         log.info("--------------------------------------------------");
         log.info("OTP Code for user {} is: {}", user.getPhone(), code);
         log.info("--------------------------------------------------");
 
-        // Twilio/SMS Provider Integration stubbed here:
-        // SMSAdapter.send(user.getPhone(), "Your RoomConnect OTP code is: " + code);
+        // Send OTP via SMS (Twilio in production, mock-logged in dev)
+        notificationService.sendSms(
+                user.getPhone(),
+                "Your RoomConnect OTP is: " + code + ". Valid for 10 minutes. Do not share this code."
+        );
     }
 
     @Transactional
