@@ -27,12 +27,9 @@ services:
           name: roomconnect-db
           property: password
 
-      # ── Redis
+      # ── Redis (Manually configure with existing Render Redis url)
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: roomconnect-redis
-          property: connectionString
+        sync: false
 
       # ── JWT — auto-generated secure random value on first deploy
       - key: JWT_SECRET
@@ -55,12 +52,6 @@ services:
         sync: false
       - key: R2_BUCKET_NAME
         sync: false
-
-  # ── Redis ──────────────────────────────────────────────────────────────────
-  - type: redis
-    name: roomconnect-redis
-    plan: free
-    ipAllowList: []   # internal access only
 
 # ── PostgreSQL ────────────────────────────────────────────────────────────────
 databases:
