@@ -1,0 +1,100 @@
+# ============================================================
+# RoomConnect Server — .gitignore
+# Spring Boot 3 · Maven · Java 21
+# ============================================================
+
+# ── Maven build output ──────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ── Compiled class files ────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# ── Logs ────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+spring.log
+
+# ── 🔐 Sensitive config — NEVER commit these ────────────────
+# Dev profile contains real DB password, JWT secret, Twilio tokens
+src/main/resources/application-dev.yml
+src/main/resources/application-dev.yaml
+src/main/resources/application-local.yml
+src/main/resources/application-local.yaml
+
+# Generic secret files
+*.env
+.env
+.env.*
+secrets.yml
+secrets.yaml
+secrets.properties
+
+# ── Spring / application properties ─────────────────────────
+# Keep application.yml and application-prod.yml (uses env vars only)
+# Block any accidental override files with hardcoded values
+application-*.properties
+# Uncomment below if you want to ignore ALL env-specific YAMLs:
+# application-*.yml
+
+# ── IntelliJ IDEA ────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+# ── Eclipse ──────────────────────────────────────────────────
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# ── VS Code ──────────────────────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ── NetBeans ─────────────────────────────────────────────────
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ── OS generated files ───────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Docker / infra ───────────────────────────────────────────
+# Keep infra/ folder but exclude local override composes
+infra/docker-compose.override.yml
+infra/.env
+
+# ── Test / coverage reports ──────────────────────────────────
+/test-results/
+/coverage/
+*.exec
+jacoco.exec
+
+# ── Temp / scratch ───────────────────────────────────────────
+*.tmp
+*.swp
+*.swo
+*~

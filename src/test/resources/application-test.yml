@@ -1,0 +1,46 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/roomconnect
+    username: rc_user
+    password: rc_pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  autoconfigure:
+    exclude:
+      - org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration
+      - org.jobrunr.spring.autoconfigure.JobRunrStorageAutoConfiguration
+      - org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicatorAutoConfiguration
+
+jwt:
+  secret: roomconnect_test_secret_key_that_is_at_least_32_chars_long_for_hmac
+
+# Mock values for testing
+twilio:
+  account-sid: MOCK_SID
+  auth-token: MOCK_TOKEN
+  from-number: "+15005550006"
+resend:
+  api-key: MOCK_RESEND_KEY
+cloudflare:
+  r2:
+    endpoint: http://localhost:9000
+    access-key: mock_key
+    secret-key: mock_secret
+    bucket-name: mock-bucket
+
+org:
+  jobrunr:
+    background-job-processor:
+      enabled: false
+    dashboard:
+      enabled: false

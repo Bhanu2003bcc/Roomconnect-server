@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  data:
+    redis:
+      url: ${REDIS_URL}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+org:
+  jobrunr:
+    background-job-processor:
+      enabled: true
+    dashboard:
+      enabled: false  # Disable dashboard in prod or secure it
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID}
+  auth-token: ${TWILIO_AUTH_TOKEN}
+  from-number: ${TWILIO_FROM_NUMBER}
+resend:
+  api-key: ${RESEND_API_KEY}
+cloudflare:
+  r2:
+    endpoint: ${R2_ENDPOINT}
+    access-key: ${R2_ACCESS_KEY}
+    secret-key: ${R2_SECRET_KEY}
+    bucket-name: ${R2_BUCKET_NAME}
