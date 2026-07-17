@@ -1,6 +1,7 @@
 package com.roomconnect.shared.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -24,6 +26,14 @@ public class SecurityConfig {
 
     @Autowired
     private com.roomconnect.shared.middleware.JwtAuthFilter jwtAuthFilter;
+
+    /**
+     * Comma-separated list of allowed CORS origins.
+     * In production (Render), set CORS_ALLOWED_ORIGINS=https://roomconnect-client.vercel.app
+     * Defaults to localhost for local development.
+     */
+    @Value("${cors.allowed-origins:http://localhost:4200}")
+    private String allowedOriginsRaw;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,7 +57,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*")); // CORS wildcard as requested for launch setup
+        List<String> origins = Arrays.asList(allowedOriginsRaw.split(","));
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

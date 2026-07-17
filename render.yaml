@@ -35,6 +35,10 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
+      # ── CORS — explicitly allow the Vercel frontend
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://roomconnect-client.vercel.app
+
       # ── Secrets — fill these in the Render Dashboard before deploying
       - key: TWILIO_ACCOUNT_SID
         sync: false
