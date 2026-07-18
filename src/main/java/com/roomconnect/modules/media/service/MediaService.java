@@ -4,13 +4,17 @@ import com.roomconnect.modules.media.entity.ListingMedia;
 import com.roomconnect.modules.media.repository.ListingMediaRepository;
 import com.roomconnect.shared.exception.ForbiddenException;
 import com.roomconnect.shared.exception.ResourceNotFoundException;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -34,6 +38,23 @@ public class MediaService {
 
     @Value("${cloudflare.r2.public-url:}")
     private String publicUrl;
+
+    @PostConstruct
+    public void init() {
+        try {
+            log.info("Checking if S3/R2 bucket '{}' exists...", bucket);
+            try {
+                s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
+                log.info("S3/R2 bucket '{}' exists.", bucket);
+            } catch (NoSuchBucketException e) {
+                log.info("S3/R2 bucket '{}' does not exist. Creating it...", bucket);
+                s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+                log.info("S3/R2 bucket '{}' created successfully.", bucket);
+            }
+        } catch (Exception e) {
+            log.warn("Could not verify/create S3/R2 bucket '{}': {}", bucket, e.getMessage());
+        }
+    }
 
     private static final int MAX_IMAGES_PER_LISTING = 10;
     private static final Duration PRESIGN_DURATION = Duration.ofMinutes(15);
