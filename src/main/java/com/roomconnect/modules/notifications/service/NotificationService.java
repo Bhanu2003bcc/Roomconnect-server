@@ -1,44 +1,59 @@
 package com.roomconnect.modules.notifications.service;
 
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class NotificationService {
 
-    @Value("${twilio.account-sid}")
-    private String twilioSid;
+    @Value("${sms-gateway.username}")
+    private String smsUsername;
 
-    @Value("${twilio.auth-token}")
-    private String twilioToken;
+    @Value("${sms-gateway.password}")
+    private String smsPassword;
 
-    @Value("${twilio.from-number}")
-    private String twilioFrom;
+    @Value("${sms-gateway.api-url:https://api.sms-gate.app/3rdparty/v1/messages}")
+    private String smsApiUrl;
 
     @Value("${resend.api-key}")
     private String resendApiKey;
 
+    private final RestClient restClient = RestClient.create();
+
     public void sendSms(String phone, String message) {
         log.info("[SMS NOTIFICATION] Send to: {}, Msg: {}", phone, message);
-        if (isMock(twilioSid) || isMock(twilioToken)) {
-            log.info("[SMS MOCK] Twilio keys not configured. SMS not sent via network.");
+        if (isMock(smsUsername) || isMock(smsPassword)) {
+            log.info("[SMS MOCK] SMS Gateway keys not configured. SMS not sent via network.");
             return;
         }
         try {
-            Twilio.init(twilioSid, twilioToken);
-            Message.creator(
-                    new PhoneNumber(phone),
-                    new PhoneNumber(twilioFrom),
-                    message
-            ).create();
-            log.info("[SMS SENT] Successfully dispatched to Twilio gateway for: {}", phone);
+            String credentials = Base64.getEncoder()
+                    .encodeToString((smsUsername + ":" + smsPassword).getBytes());
+
+            Map<String, Object> requestBody = Map.of(
+                    "textMessage", Map.of("text", message),
+                    "phoneNumbers", List.of(phone)
+            );
+
+            restClient.post()
+                    .uri(smsApiUrl)
+                    .header("Authorization", "Basic " + credentials)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    .retrieve()
+                    .toBodilessEntity();
+
+            log.info("[SMS SENT] Successfully dispatched to SMS Gateway for: {}", phone);
         } catch (Exception e) {
-            log.error("[SMS ERROR] Failed to send SMS to {} via Twilio: {}", phone, e.getMessage(), e);
+            log.error("[SMS ERROR] Failed to send SMS to {} via SMS Gateway: {}", phone, e.getMessage(), e);
         }
     }
 
@@ -56,3 +71,4 @@ public class NotificationService {
         return val == null || val.isBlank() || val.contains("placeholder") || val.contains("MOCK") || val.contains("AC_DEV");
     }
 }
+

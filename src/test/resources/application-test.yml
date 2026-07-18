@@ -25,10 +25,10 @@ jwt:
   secret: roomconnect_test_secret_key_that_is_at_least_32_chars_long_for_hmac
 
 # Mock values for testing
-twilio:
-  account-sid: MOCK_SID
-  auth-token: MOCK_TOKEN
-  from-number: "+15005550006"
+sms-gateway:
+  username: MOCK_SMS_USER
+  password: MOCK_SMS_PASS
+  api-url: https://api.sms-gate.app/3rdparty/v1/messages
 resend:
   api-key: MOCK_RESEND_KEY
 cloudflare:

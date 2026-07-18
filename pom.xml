@@ -119,12 +119,7 @@
             <version>${bucket4j.version}</version>
         </dependency>
 
-        <!-- Twilio SMS SDK -->
-        <dependency>
-            <groupId>com.twilio.sdk</groupId>
-            <artifactId>twilio</artifactId>
-            <version>10.6.2</version>
-        </dependency>
+
 
         <!-- Observability -->
         <dependency>
