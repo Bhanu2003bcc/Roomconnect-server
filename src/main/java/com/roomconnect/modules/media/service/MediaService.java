@@ -11,10 +11,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CORSConfiguration;
+import software.amazon.awssdk.services.s3.model.CORSRule;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.PutBucketCorsRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -39,6 +42,9 @@ public class MediaService {
     @Value("${cloudflare.r2.public-url:}")
     private String publicUrl;
 
+    @Value("${cors.allowed-origins:http://localhost:4200}")
+    private String allowedOriginsRaw;
+
     @PostConstruct
     public void init() {
         try {
@@ -51,8 +57,30 @@ public class MediaService {
                 s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
                 log.info("S3/R2 bucket '{}' created successfully.", bucket);
             }
+
+            // Set CORS configuration
+            log.info("Configuring CORS policy for S3/R2 bucket '{}'...", bucket);
+            List<String> allowedOrigins = java.util.Arrays.stream(allowedOriginsRaw.split(","))
+                    .map(String::trim)
+                    .toList();
+
+            CORSRule rule = CORSRule.builder()
+                    .allowedOrigins(allowedOrigins)
+                    .allowedMethods(List.of("GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"))
+                    .allowedHeaders(List.of("*"))
+                    .maxAgeSeconds(3600)
+                    .build();
+
+            s3Client.putBucketCors(PutBucketCorsRequest.builder()
+                    .bucket(bucket)
+                    .corsConfiguration(CORSConfiguration.builder()
+                            .corsRules(List.of(rule))
+                            .build())
+                    .build());
+            log.info("CORS policy configured successfully for bucket '{}'.", bucket);
+
         } catch (Exception e) {
-            log.warn("Could not verify/create S3/R2 bucket '{}': {}", bucket, e.getMessage());
+            log.warn("Could not verify/create/configure CORS for S3/R2 bucket '{}': {}", bucket, e.getMessage());
         }
     }
 
