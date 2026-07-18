@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -47,41 +48,45 @@ public class MediaService {
 
     @PostConstruct
     public void init() {
-        try {
-            log.info("Checking if S3/R2 bucket '{}' exists...", bucket);
+        CompletableFuture.runAsync(() -> {
             try {
-                s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
-                log.info("S3/R2 bucket '{}' exists.", bucket);
-            } catch (NoSuchBucketException e) {
-                log.info("S3/R2 bucket '{}' does not exist. Creating it...", bucket);
-                s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-                log.info("S3/R2 bucket '{}' created successfully.", bucket);
+                // Wait briefly to allow application port binding to succeed first
+                Thread.sleep(1000);
+                log.info("Checking if S3/R2 bucket '{}' exists...", bucket);
+                try {
+                    s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
+                    log.info("S3/R2 bucket '{}' exists.", bucket);
+                } catch (NoSuchBucketException e) {
+                    log.info("S3/R2 bucket '{}' does not exist. Creating it...", bucket);
+                    s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+                    log.info("S3/R2 bucket '{}' created successfully.", bucket);
+                }
+
+                // Set CORS configuration
+                log.info("Configuring CORS policy for S3/R2 bucket '{}'...", bucket);
+                List<String> allowedOrigins = java.util.Arrays.stream(allowedOriginsRaw.split(","))
+                        .map(String::trim)
+                        .toList();
+
+                CORSRule rule = CORSRule.builder()
+                        .allowedOrigins(allowedOrigins)
+                        .allowedMethods(List.of("GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"))
+                        .allowedHeaders(List.of("*"))
+                        .maxAgeSeconds(3600)
+                        .build();
+
+                s3Client.putBucketCors(PutBucketCorsRequest.builder()
+                        .bucket(bucket)
+                        .corsConfiguration(CORSConfiguration.builder()
+                                .corsRules(List.of(rule))
+                                .build())
+                        .build());
+                log.info("CORS policy configured successfully for bucket '{}'.", bucket);
+
+            } catch (Exception e) {
+                log.warn("Could not verify/create/configure CORS for S3/R2 bucket '{}': {}", bucket, e.getMessage());
             }
-
-            // Set CORS configuration
-            log.info("Configuring CORS policy for S3/R2 bucket '{}'...", bucket);
-            List<String> allowedOrigins = java.util.Arrays.stream(allowedOriginsRaw.split(","))
-                    .map(String::trim)
-                    .toList();
-
-            CORSRule rule = CORSRule.builder()
-                    .allowedOrigins(allowedOrigins)
-                    .allowedMethods(List.of("GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"))
-                    .allowedHeaders(List.of("*"))
-                    .maxAgeSeconds(3600)
-                    .build();
-
-            s3Client.putBucketCors(PutBucketCorsRequest.builder()
-                    .bucket(bucket)
-                    .corsConfiguration(CORSConfiguration.builder()
-                            .corsRules(List.of(rule))
-                            .build())
-                    .build());
-            log.info("CORS policy configured successfully for bucket '{}'.", bucket);
-
-        } catch (Exception e) {
-            log.warn("Could not verify/create/configure CORS for S3/R2 bucket '{}': {}", bucket, e.getMessage());
-        }
+        });
     }
 
     private static final int MAX_IMAGES_PER_LISTING = 10;
