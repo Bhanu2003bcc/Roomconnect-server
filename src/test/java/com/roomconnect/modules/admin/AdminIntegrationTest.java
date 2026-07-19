@@ -106,4 +106,48 @@ public class AdminIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].action").value("SUSPEND_USER"));
     }
+
+    @Test
+    public void testNewAdminEndpoints() throws Exception {
+        // 1. Get Grouped Users
+        mockMvc.perform(get("/api/admin/users")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.admins").isArray())
+                .andExpect(jsonPath("$.owners").isArray())
+                .andExpect(jsonPath("$.visitors").isArray());
+
+        // 2. Create User
+        com.roomconnect.modules.admin.dto.AdminCreateUserRequest createRequest =
+                new com.roomconnect.modules.admin.dto.AdminCreateUserRequest(
+                        "+918888888888",
+                        "newuser@example.com",
+                        Role.owner,
+                        "John Test",
+                        "active"
+                );
+
+        String responseJson = mockMvc.perform(post("/api/admin/users")
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("+918888888888"))
+                .andExpect(jsonPath("$.role").value("owner"))
+                .andReturn().getResponse().getContentAsString();
+
+        User createdUser = objectMapper.readValue(responseJson, User.class);
+
+        // 3. List Listings
+        mockMvc.perform(get("/api/admin/listings")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        // 4. Delete User
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/admin/users/" + createdUser.getId())
+                .header("Authorization-custom-not-header", "Bearer " + adminToken) // Note: using standard delete request builders
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNoContent());
+    }
 }

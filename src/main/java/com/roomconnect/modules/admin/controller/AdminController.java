@@ -1,7 +1,12 @@
 package com.roomconnect.modules.admin.controller;
 
+import com.roomconnect.modules.admin.dto.AdminCreateUserRequest;
+import com.roomconnect.modules.admin.dto.AdminUserDto;
 import com.roomconnect.modules.admin.entity.AuditLog;
 import com.roomconnect.modules.admin.service.AdminService;
+import com.roomconnect.modules.auth.entity.User;
+import com.roomconnect.modules.listings.dto.ListingResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -68,5 +74,34 @@ public class AdminController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(adminService.getAuditLogs(page, size));
+    }
+
+    /** GET /api/admin/users — Get users grouped by role */
+    @GetMapping("/users")
+    public ResponseEntity<Map<String, List<AdminUserDto>>> getUsersGroupedByRole() {
+        return ResponseEntity.ok(adminService.getUsersGroupedByRole());
+    }
+
+    /** POST /api/admin/users — Admin adds a user */
+    @PostMapping("/users")
+    public ResponseEntity<User> createUser(
+            @AuthenticationPrincipal UUID adminId,
+            @Valid @RequestBody AdminCreateUserRequest req) {
+        return ResponseEntity.ok(adminService.createUser(adminId, req));
+    }
+
+    /** DELETE /api/admin/users/{userId} — Admin deletes a user and all their content */
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable UUID userId,
+            @AuthenticationPrincipal UUID adminId) {
+        adminService.deleteUser(adminId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** GET /api/admin/listings — List all listings on the platform */
+    @GetMapping("/listings")
+    public ResponseEntity<List<ListingResponse>> getAllListings() {
+        return ResponseEntity.ok(adminService.getAllListings());
     }
 }
