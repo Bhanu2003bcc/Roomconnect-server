@@ -280,8 +280,8 @@ public class AdminService {
                     .map(m -> {
                         ListingResponse.MediaItem item = new ListingResponse.MediaItem();
                         item.setId(m.getId());
-                        item.setUrl(m.getFileKey());
-                        item.setThumbnailUrl(m.getThumbnailKey());
+                        item.setUrl(mediaService.getPublicUrl(m.getFileKey()));
+                        item.setThumbnailUrl(mediaService.getPublicUrl(m.getThumbnailKey()));
                         item.setSortOrder(m.getSortOrder());
                         return item;
                     })

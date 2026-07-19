@@ -43,6 +43,9 @@ public class MediaService {
     @Value("${cloudflare.r2.public-url:}")
     private String publicUrl;
 
+    @Value("${cloudflare.r2.endpoint:}")
+    private String endpoint;
+
     @Value("${cors.allowed-origins:http://localhost:4200}")
     private String allowedOriginsRaw;
 
@@ -70,25 +73,55 @@ public class MediaService {
                 }
 
                 // Set CORS configuration
-                log.info("Configuring CORS policy for S3/R2 bucket '{}'...", bucket);
-                List<String> allowedOrigins = java.util.Arrays.stream(allowedOriginsRaw.split(","))
-                        .map(String::trim)
-                        .toList();
+                try {
+                    log.info("Configuring CORS policy for S3/R2 bucket '{}'...", bucket);
+                    List<String> allowedOrigins = java.util.Arrays.stream(allowedOriginsRaw.split(","))
+                            .map(String::trim)
+                            .toList();
 
-                CORSRule rule = CORSRule.builder()
-                        .allowedOrigins(allowedOrigins)
-                        .allowedMethods(List.of("GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"))
-                        .allowedHeaders(List.of("content-type", "authorization", "x-requested-with", "accept", "origin"))
-                        .maxAgeSeconds(3600)
-                        .build();
+                    CORSRule rule = CORSRule.builder()
+                            .allowedOrigins(allowedOrigins)
+                            .allowedMethods(List.of("GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"))
+                            .allowedHeaders(List.of("content-type", "authorization", "x-requested-with", "accept", "origin"))
+                            .maxAgeSeconds(3600)
+                            .build();
 
-                s3Client.putBucketCors(PutBucketCorsRequest.builder()
-                        .bucket(bucket)
-                        .corsConfiguration(CORSConfiguration.builder()
-                                .corsRules(List.of(rule))
-                                .build())
-                        .build());
-                log.info("CORS policy configured successfully for bucket '{}'.", bucket);
+                    s3Client.putBucketCors(PutBucketCorsRequest.builder()
+                            .bucket(bucket)
+                            .corsConfiguration(CORSConfiguration.builder()
+                                    .corsRules(List.of(rule))
+                                    .build())
+                            .build());
+                    log.info("CORS policy configured successfully for bucket '{}'.", bucket);
+                } catch (Exception corsEx) {
+                    log.warn("Could not configure CORS for S3/R2 bucket '{}': {}", bucket, corsEx.getMessage());
+                }
+
+                // Set Public Read bucket policy
+                try {
+                    log.info("Configuring public read bucket policy for S3/R2 bucket '{}'...", bucket);
+                    String policyJson = """
+                    {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Sid": "PublicRead",
+                          "Effect": "Allow",
+                          "Principal": "*",
+                          "Action": ["s3:GetObject"],
+                          "Resource": ["arn:aws:s3:::%s/*"]
+                        }
+                      ]
+                    }
+                    """.formatted(bucket);
+                    s3Client.putBucketPolicy(software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest.builder()
+                            .bucket(bucket)
+                            .policy(policyJson)
+                            .build());
+                    log.info("Public read bucket policy configured successfully for bucket '{}'.", bucket);
+                } catch (Exception policyEx) {
+                    log.warn("Could not set public read bucket policy for S3/R2 bucket '{}': {}", bucket, policyEx.getMessage());
+                }
 
             } catch (Exception e) {
                 log.warn("Could not verify/create/configure CORS for S3/R2 bucket '{}': {}", bucket, e.getMessage());
@@ -189,6 +222,19 @@ public class MediaService {
         int dot = key.lastIndexOf('.');
         if (dot < 0) return key + "_thumb";
         return key.substring(0, dot) + "_thumb" + key.substring(dot);
+    }
+
+    public String getPublicUrl(String fileKey) {
+        if (fileKey == null) return null;
+        if (publicUrl != null && !publicUrl.isBlank()) {
+            String base = publicUrl.endsWith("/") ? publicUrl : publicUrl + "/";
+            return base + fileKey;
+        }
+        if (endpoint != null && !endpoint.isBlank()) {
+            String base = endpoint.endsWith("/") ? endpoint : endpoint + "/";
+            return base + bucket + "/" + fileKey;
+        }
+        return fileKey;
     }
 
     public record PresignResult(UUID mediaId, String fileKey, String uploadUrl) {}

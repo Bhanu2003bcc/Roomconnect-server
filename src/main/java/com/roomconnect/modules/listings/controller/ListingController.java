@@ -128,8 +128,8 @@ public class ListingController {
                 .map(m -> {
                     ListingResponse.MediaItem item = new ListingResponse.MediaItem();
                     item.setId(m.getId());
-                    item.setUrl(m.getFileKey()); // resolved to CDN URL in client
-                    item.setThumbnailUrl(m.getThumbnailKey());
+                    item.setUrl(mediaService.getPublicUrl(m.getFileKey()));
+                    item.setThumbnailUrl(mediaService.getPublicUrl(m.getThumbnailKey()));
                     item.setSortOrder(m.getSortOrder());
                     return item;
                 })
