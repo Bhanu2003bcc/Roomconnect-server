@@ -46,8 +46,15 @@ public class MediaService {
     @Value("${cors.allowed-origins:http://localhost:4200}")
     private String allowedOriginsRaw;
 
+    @Value("${cloudflare.r2.initialize-on-startup:false}")
+    private boolean initializeOnStartup;
+
     @PostConstruct
     public void init() {
+        if (!initializeOnStartup) {
+            log.info("S3/R2 bucket initialization on startup is disabled.");
+            return;
+        }
         CompletableFuture.runAsync(() -> {
             try {
                 // Wait briefly to allow application port binding to succeed first
@@ -71,7 +78,7 @@ public class MediaService {
                 CORSRule rule = CORSRule.builder()
                         .allowedOrigins(allowedOrigins)
                         .allowedMethods(List.of("GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"))
-                        .allowedHeaders(List.of("*"))
+                        .allowedHeaders(List.of("content-type", "authorization", "x-requested-with", "accept", "origin"))
                         .maxAgeSeconds(3600)
                         .build();
 

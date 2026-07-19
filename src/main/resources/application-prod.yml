@@ -33,6 +33,7 @@ cloudflare:
     access-key: ${R2_ACCESS_KEY}
     secret-key: ${R2_SECRET_KEY}
     bucket-name: ${R2_BUCKET_NAME}
+    initialize-on-startup: ${R2_INITIALIZE_ON_STARTUP:false}
 
 jwt:
   secret: ${JWT_SECRET}
