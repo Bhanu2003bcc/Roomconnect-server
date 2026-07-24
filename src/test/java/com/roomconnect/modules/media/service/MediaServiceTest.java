@@ -80,4 +80,28 @@ public class MediaServiceTest {
         );
         org.junit.jupiter.api.Assertions.assertTrue(ex.getMessage().contains("bucket configuration"));
     }
+
+    @Test
+    public void testGetThumbnailKey_whenLegacyThumbSuffixExists_shouldFallbackToCdnUrl() {
+        // Arrange
+        com.roomconnect.modules.media.entity.ListingMedia media = com.roomconnect.modules.media.entity.ListingMedia.builder()
+                .cdnUrl("listings/123/image1.jpg")
+                .thumbnailUrl("listings/123/image1_thumb.jpg")
+                .build();
+
+        // Act & Assert - getThumbnailKey() must sanitize and return cdnUrl without _thumb.jpg
+        org.junit.jupiter.api.Assertions.assertEquals("listings/123/image1.jpg", media.getThumbnailKey());
+    }
+
+    @Test
+    public void testGetPublicUrl_shouldFormValidUrl() {
+        // Arrange
+        ReflectionTestUtils.setField(mediaService, "publicUrl", "https://pub-r2.cloudflarestorage.com");
+
+        // Act
+        String result = mediaService.getPublicUrl("listings/123/image1.jpg");
+
+        // Assert
+        org.junit.jupiter.api.Assertions.assertEquals("https://pub-r2.cloudflarestorage.com/listings/123/image1.jpg", result);
+    }
 }
