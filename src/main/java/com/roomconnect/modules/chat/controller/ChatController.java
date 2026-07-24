@@ -31,22 +31,7 @@ public class ChatController {
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationResponse>> getConversations(@AuthenticationPrincipal UUID currentUserId) {
         List<Conversation> convs = chatService.getUserConversations(currentUserId);
-        List<ConversationResponse> response = convs.stream().map(c -> {
-            Listing listing = listingRepository.findById(c.getListingId()).orElse(null);
-            ConversationResponse r = new ConversationResponse();
-            r.setId(c.getId());
-            r.setListingId(c.getListingId());
-            r.setOwnerId(c.getOwnerId());
-            r.setVisitorId(c.getVisitorId());
-            r.setCreatedAt(c.getCreatedAt());
-            r.setLastMessageAt(c.getLastMessageAt());
-            if (listing != null) {
-                r.setListingTitle(listing.getTitle());
-                r.setListingRent(listing.getRentAmount());
-                r.setListingAddress(listing.getAddressText());
-            }
-            return r;
-        }).collect(Collectors.toList());
+        List<ConversationResponse> response = convs.stream().map(this::mapToResponse).collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
 
@@ -61,13 +46,43 @@ public class ChatController {
         return ResponseEntity.ok(messages);
     }
 
+    /** POST /api/chat/conversations/{id}/messages — Send a message via HTTP REST */
+    @PostMapping("/conversations/{id}/messages")
+    public ResponseEntity<Message> sendMessage(
+            @PathVariable UUID id,
+            @RequestBody SendMessageHttpRequest request,
+            @AuthenticationPrincipal UUID currentUserId) {
+        Message message = chatService.saveAndBroadcastMessage(currentUserId, id, request.getBody());
+        return ResponseEntity.ok(message);
+    }
+
     /** POST /api/chat/conversations — Create or get conversation for a listing */
     @PostMapping("/conversations")
-    public ResponseEntity<Conversation> startConversation(
+    public ResponseEntity<ConversationResponse> startConversation(
             @RequestParam UUID listingId,
             @AuthenticationPrincipal UUID currentUserId) {
         Conversation conv = chatService.getOrCreateConversation(listingId, currentUserId);
-        return ResponseEntity.ok(conv);
+        return ResponseEntity.ok(mapToResponse(conv));
+    }
+
+    private ConversationResponse mapToResponse(Conversation c) {
+        Listing listing = c.getListingId() != null ? listingRepository.findById(c.getListingId()).orElse(null) : null;
+        ConversationResponse r = new ConversationResponse();
+        r.setId(c.getId());
+        r.setListingId(c.getListingId());
+        r.setOwnerId(c.getOwnerId());
+        r.setVisitorId(c.getVisitorId());
+        r.setCreatedAt(c.getCreatedAt());
+        r.setLastMessageAt(c.getLastMessageAt());
+        r.setListingTitle(c.getListingTitle() != null ? c.getListingTitle() : (listing != null ? listing.getTitle() : "Room Inquiry"));
+        r.setListingRent(c.getListingRent() != null ? c.getListingRent() : (listing != null ? listing.getRentAmount() : null));
+        r.setListingAddress(c.getListingAddress() != null ? c.getListingAddress() : (listing != null ? listing.getAddressText() : null));
+        return r;
+    }
+
+    @Getter @Setter
+    public static class SendMessageHttpRequest {
+        private String body;
     }
 
     @Getter @Setter

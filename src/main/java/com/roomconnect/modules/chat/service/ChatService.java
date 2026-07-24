@@ -34,12 +34,30 @@ public class ChatService {
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + listingId));
 
+        if (listing.getOwnerId().equals(visitorId)) {
+            throw new IllegalArgumentException("You cannot start a chat on your own property listing.");
+        }
+
         return conversationRepository.findByListingIdAndVisitorId(listingId, visitorId)
+                .map(conv -> {
+                    if (conv.getListingTitle() == null) {
+                        conv.setListingTitle(listing.getTitle());
+                        conv.setListingAddress(listing.getAddressText());
+                        conv.setListingRent(listing.getRentAmount());
+                        return conversationRepository.save(conv);
+                    }
+                    return conv;
+                })
                 .orElseGet(() -> {
                     Conversation newConv = Conversation.builder()
                             .listingId(listingId)
                             .visitorId(visitorId)
                             .ownerId(listing.getOwnerId())
+                            .listingTitle(listing.getTitle())
+                            .listingAddress(listing.getAddressText())
+                            .listingRent(listing.getRentAmount())
+                            .createdAt(OffsetDateTime.now())
+                            .lastMessageAt(OffsetDateTime.now())
                             .build();
                     return conversationRepository.save(newConv);
                 });

@@ -3,6 +3,7 @@ package com.roomconnect.modules.chat.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "listing_id", nullable = false)
+    @Column(name = "listing_id")
     private UUID listingId;
 
     @Column(name = "owner_id", nullable = false)
@@ -25,6 +26,15 @@ public class Conversation {
 
     @Column(name = "visitor_id", nullable = false)
     private UUID visitorId;
+
+    @Column(name = "listing_title")
+    private String listingTitle;
+
+    @Column(name = "listing_address", columnDefinition = "TEXT")
+    private String listingAddress;
+
+    @Column(name = "listing_rent")
+    private BigDecimal listingRent;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)

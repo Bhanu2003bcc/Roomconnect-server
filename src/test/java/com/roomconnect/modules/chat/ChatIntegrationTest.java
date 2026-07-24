@@ -128,4 +128,22 @@ public class ChatIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isEmpty());
     }
+
+    @Test
+    public void testListingDeletionPreservesConversationsFor90Days() throws Exception {
+        // 1. Create conversation
+        mockMvc.perform(post("/api/chat/conversations")
+                .header("Authorization", "Bearer " + visitorToken)
+                .param("listingId", listing.getId().toString()))
+                .andExpect(status().isOk());
+
+        // 2. Delete the listing
+        listingRepository.delete(listing);
+
+        // 3. Verify conversation still exists and returns snapshot details
+        mockMvc.perform(get("/api/chat/conversations")
+                .header("Authorization", "Bearer " + visitorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].listingTitle").value("Aesthetic room in Noida"));
+    }
 }
