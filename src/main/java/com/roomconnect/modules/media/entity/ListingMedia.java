@@ -51,8 +51,13 @@ public class ListingMedia {
     public String getFileKey()      { return cdnUrl; }
     public void   setFileKey(String v) { this.cdnUrl = v; }
 
-    public String getThumbnailKey()      { return thumbnailUrl; }
-    public void   setThumbnailKey(String v) { this.thumbnailUrl = v; }
+    public String getThumbnailKey() {
+        if (thumbnailUrl == null || thumbnailUrl.isBlank() || thumbnailUrl.contains("_thumb.")) {
+            return cdnUrl;
+        }
+        return thumbnailUrl;
+    }
+    public void setThumbnailKey(String v) { this.thumbnailUrl = v; }
 
     public boolean isReady() { return "done".equals(processingStatus); }
 }

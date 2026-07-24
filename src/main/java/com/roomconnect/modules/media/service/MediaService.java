@@ -231,9 +231,7 @@ public class MediaService {
     }
 
     private String generateThumbnailKey(String key) {
-        int dot = key.lastIndexOf('.');
-        if (dot < 0) return key + "_thumb";
-        return key.substring(0, dot) + "_thumb" + key.substring(dot);
+        return key;
     }
 
     public String getPublicUrl(String fileKey) {
