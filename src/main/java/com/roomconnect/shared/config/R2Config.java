@@ -30,10 +30,14 @@ public class R2Config {
 
     @Bean
     public S3Client s3Client() {
+        String safeEndpoint = (endpoint != null && !endpoint.isBlank()) ? endpoint : "http://localhost:9000";
+        String safeAccessKey = (accessKey != null && !accessKey.isBlank()) ? accessKey : "dev_access_key";
+        String safeSecretKey = (secretKey != null && !secretKey.isBlank()) ? secretKey : "dev_secret_key";
+
         return S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
+                .endpointOverride(URI.create(safeEndpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKey, secretKey)))
+                        AwsBasicCredentials.create(safeAccessKey, safeSecretKey)))
                 .region(Region.of("auto"))          // R2 uses "auto"
                 .forcePathStyle(true)               // required for R2 compatibility
                 .build();
@@ -41,10 +45,14 @@ public class R2Config {
 
     @Bean
     public S3Presigner s3Presigner() {
+        String safeEndpoint = (endpoint != null && !endpoint.isBlank()) ? endpoint : "http://localhost:9000";
+        String safeAccessKey = (accessKey != null && !accessKey.isBlank()) ? accessKey : "dev_access_key";
+        String safeSecretKey = (secretKey != null && !secretKey.isBlank()) ? secretKey : "dev_secret_key";
+
         return S3Presigner.builder()
-                .endpointOverride(URI.create(endpoint))
+                .endpointOverride(URI.create(safeEndpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKey, secretKey)))
+                        AwsBasicCredentials.create(safeAccessKey, safeSecretKey)))
                 .region(Region.of("auto"))
                 .serviceConfiguration(S3Configuration.builder()
                         .pathStyleAccessEnabled(true)

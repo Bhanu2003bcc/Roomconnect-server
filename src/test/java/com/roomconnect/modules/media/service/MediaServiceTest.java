@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
+import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -65,5 +66,18 @@ public class MediaServiceTest {
 
         // Assert
         verify(s3Client, atLeastOnce()).headBucket(any(HeadBucketRequest.class));
+    }
+
+    @Test
+    public void testGenerateUploadUrl_whenBucketIsMissing_shouldThrowAppException() {
+        // Arrange
+        ReflectionTestUtils.setField(mediaService, "bucket", "");
+
+        // Act & Assert
+        com.roomconnect.shared.exception.AppException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                com.roomconnect.shared.exception.AppException.class, () ->
+                mediaService.generateUploadUrl(UUID.randomUUID(), UUID.randomUUID(), "image/png", 1024L)
+        );
+        org.junit.jupiter.api.Assertions.assertTrue(ex.getMessage().contains("bucket configuration"));
     }
 }

@@ -31,12 +31,12 @@ resend:
   api-key: ${RESEND_API_KEY}
 cloudflare:
   r2:
-    endpoint: ${R2_ENDPOINT}
-    access-key: ${R2_ACCESS_KEY}
-    secret-key: ${R2_SECRET_KEY}
-    bucket-name: ${R2_BUCKET_NAME}
+    endpoint: ${R2_ENDPOINT:http://localhost:9000}
+    access-key: ${R2_ACCESS_KEY:dev_access_key}
+    secret-key: ${R2_SECRET_KEY:dev_secret_key}
+    bucket-name: ${R2_BUCKET_NAME:roomconnect}
     public-url: ${R2_PUBLIC_URL:}
-    initialize-on-startup: ${R2_INITIALIZE_ON_STARTUP:false}
+    initialize-on-startup: ${R2_INITIALIZE_ON_STARTUP:true}
 
 jwt:
   secret: ${JWT_SECRET}

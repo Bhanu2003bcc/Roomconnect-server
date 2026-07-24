@@ -2,12 +2,14 @@ package com.roomconnect.modules.media.service;
 
 import com.roomconnect.modules.media.entity.ListingMedia;
 import com.roomconnect.modules.media.repository.ListingMediaRepository;
+import com.roomconnect.shared.exception.AppException;
 import com.roomconnect.shared.exception.ForbiddenException;
 import com.roomconnect.shared.exception.ResourceNotFoundException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -139,6 +141,10 @@ public class MediaService {
     @Transactional
     public PresignResult generateUploadUrl(UUID listingId, UUID requesterId,
                                            String mimeType, long sizeBytes) {
+        if (bucket == null || bucket.isBlank()) {
+            throw new AppException("Storage bucket configuration (cloudflare.r2.bucket-name) is missing on the server.", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
         int count = mediaRepository.countByListingId(listingId);
         if (count >= MAX_IMAGES_PER_LISTING) {
             throw new ForbiddenException("Maximum " + MAX_IMAGES_PER_LISTING + " images per listing");
@@ -146,17 +152,23 @@ public class MediaService {
 
         String fileKey = "listings/" + listingId + "/" + UUID.randomUUID() + resolveExtension(mimeType);
 
-        PutObjectRequest putReq = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(fileKey)
-                .contentType(mimeType)
-                .build();
+        PresignedPutObjectRequest presigned;
+        try {
+            PutObjectRequest putReq = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileKey)
+                    .contentType(mimeType)
+                    .build();
 
-        PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(
-                PutObjectPresignRequest.builder()
-                        .signatureDuration(PRESIGN_DURATION)
-                        .putObjectRequest(putReq)
-                        .build());
+            presigned = s3Presigner.presignPutObject(
+                    PutObjectPresignRequest.builder()
+                            .signatureDuration(PRESIGN_DURATION)
+                            .putObjectRequest(putReq)
+                            .build());
+        } catch (Exception e) {
+            log.error("Failed to generate presigned upload URL for bucket {}", bucket, e);
+            throw new AppException("Storage service unavailable or credentials invalid: " + e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+        }
 
         ListingMedia media = ListingMedia.builder()
                 .listingId(listingId)
