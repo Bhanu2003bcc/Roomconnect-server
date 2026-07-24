@@ -152,7 +152,7 @@ Validation errors return a `422 Unprocessable Entity` code mapping the fields to
 
 ---
 
-### 🔑 Authentication Module
+### Authentication Module
 Endpoints implemented in [AuthController.java](file:///home/lol/roomconnect-server/src/main/java/com/roomconnect/modules/auth/controller/AuthController.java).
 
 #### `POST /api/auth/signup`
@@ -161,10 +161,10 @@ Creates a pending user account.
 * **Request Body**:
 ```json
 {
-  "phone": "9876543210",
+  "phone": "9876543***",
   "email": "user@example.com",
   "role": "visitor", 
-  "fullName": "Bhanu Prakash",
+  "fullName": "Bhanu Pratap",
   "consent": true
 }
 ```
@@ -172,7 +172,7 @@ Creates a pending user account.
 ```json
 {
   "userId": "d3b07384-d113-49cd-a5d6-8ee8df004123",
-  "phone": "9876543210",
+  "phone": "9876543***",
   "role": "visitor",
   "message": "Signup successful. Please verify OTP."
 }
@@ -184,7 +184,7 @@ Requests Twilio SMS OTP dispatch.
 * **Request Body**:
 ```json
 {
-  "phone": "9876543210"
+  "phone": "9876543***"
 }
 ```
 * **Response Body (`200 OK`)**:
@@ -200,7 +200,7 @@ Verifies OTP and issues credentials.
 * **Request Body**:
 ```json
 {
-  "phone": "9876543210",
+  "phone": "9876543***",
   "code": "123456"
 }
 ```
@@ -211,13 +211,13 @@ Verifies OTP and issues credentials.
   "refreshToken": "eyJhbGciOiJIUzI1NiJ9...",
   "userId": "d3b07384-d113-49cd-a5d6-8ee8df004123",
   "role": "visitor",
-  "phone": "9876543210"
+  "phone": "9876543***"
 }
 ```
 
 ---
 
-### 👤 User Module
+### User Module
 Endpoints implemented in [UserController.java](file:///home/lol/roomconnect-server/src/main/java/com/roomconnect/modules/users/controller/UserController.java).
 
 #### `GET /api/users/me`
@@ -227,12 +227,11 @@ Retrieves authenticated profile data.
 ```json
 {
   "id": "d3b07384-d113-49cd-a5d6-8ee8df004123",
-  "phone": "9876543210",
+  "phone": "9876543***",
   "email": "visitor@example.com",
   "role": "visitor",
   "fullName": "Bhanu Prakash",
   "homeAddress": "123 Main St, New Delhi",
-  "profession": "Software Engineer",
   "cityId": 1
 }
 ```
@@ -246,7 +245,6 @@ Updates user profile metadata.
   "email": "updated@example.com",
   "fullName": "Bhanu Prakash Updated",
   "homeAddress": "456 Side St, Noida",
-  "profession": "Architect",
   "cityId": 1
 }
 ```
@@ -266,7 +264,7 @@ Updates user profile metadata.
 
 ---
 
-### 🏠 Listings Module
+### Listings Module
 Endpoints implemented in [ListingController.java](file:///home/lol/roomconnect-server/src/main/java/com/roomconnect/modules/listings/controller/ListingController.java).
 
 #### `POST /api/listings`
