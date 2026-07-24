@@ -18,4 +18,4 @@ COPY --from=build /app/target/roomconnect-server-0.0.1-SNAPSHOT.jar app.jar
 # Render injects PORT; default to 8080 locally
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=prod"]
+ENTRYPOINT ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-Xms256m", "-Xmx384m", "-jar", "app.jar", "--spring.profiles.active=prod"]
