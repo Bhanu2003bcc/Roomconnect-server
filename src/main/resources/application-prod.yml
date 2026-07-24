@@ -10,6 +10,8 @@ spring:
   data:
     redis:
       url: ${REDIS_URL}
+      repositories:
+        enabled: false
   flyway:
     enabled: true
     baseline-on-migrate: true
