@@ -150,7 +150,6 @@ public class MediaService {
                 .bucket(bucket)
                 .key(fileKey)
                 .contentType(mimeType)
-                .contentLength(sizeBytes)
                 .build();
 
         PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(
