@@ -18,6 +18,8 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
 
     Page<Listing> findByOwnerId(UUID ownerId, Pageable pageable);
 
+    long countByStatus(ListingStatus status);
+
     List<Listing> findByStatusAndAvailableFromDateLessThanEqual(
             ListingStatus status, LocalDate date);
 

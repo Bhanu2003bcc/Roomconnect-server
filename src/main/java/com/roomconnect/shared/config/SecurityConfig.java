@@ -55,7 +55,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/actuator/**", "/ws/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/listings/**", "/api/search").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/listings/**", "/api/search", "/api/stats").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
