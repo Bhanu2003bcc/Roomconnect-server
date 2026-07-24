@@ -2,6 +2,7 @@ package com.roomconnect.modules.media.controller;
 
 import com.roomconnect.modules.media.service.MediaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,7 +31,7 @@ public class MediaController {
             @RequestParam String mimeType,
             @RequestParam long sizeBytes) {
         MediaService.PresignResult result = mediaService.generateUploadUrl(listingId, ownerId, mimeType, sizeBytes);
-        return ResponseEntity.ok(Map.of(
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "mediaId",   result.mediaId(),
                 "fileKey",   result.fileKey(),
                 "uploadUrl", result.uploadUrl()

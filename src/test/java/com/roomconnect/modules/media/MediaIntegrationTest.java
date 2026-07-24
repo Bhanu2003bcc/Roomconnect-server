@@ -91,7 +91,7 @@ public class MediaIntegrationTest {
                 .header("Authorization", "Bearer " + ownerToken)
                 .param("mimeType", "image/png")
                 .param("sizeBytes", "1024"))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.mediaId").exists())
                 .andExpect(jsonPath("$.fileKey").exists())
                 .andExpect(jsonPath("$.uploadUrl").value(containsString("http://localhost:9000/mock-bucket/listings/")))

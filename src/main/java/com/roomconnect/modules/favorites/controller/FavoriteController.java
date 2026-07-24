@@ -4,6 +4,7 @@ import com.roomconnect.modules.favorites.entity.Favorite;
 import com.roomconnect.modules.favorites.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,7 +28,8 @@ public class FavoriteController {
             @PathVariable UUID listingId,
             @AuthenticationPrincipal UUID visitorId) {
         boolean favorited = favoriteService.toggle(visitorId, listingId);
-        return ResponseEntity.ok(Map.of(
+        HttpStatus status = favorited ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(Map.of(
                 "listingId", listingId,
                 "favorited", favorited
         ));

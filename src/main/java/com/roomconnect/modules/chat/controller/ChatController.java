@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +54,7 @@ public class ChatController {
             @RequestBody SendMessageHttpRequest request,
             @AuthenticationPrincipal UUID currentUserId) {
         Message message = chatService.saveAndBroadcastMessage(currentUserId, id, request.getBody());
-        return ResponseEntity.ok(message);
+        return ResponseEntity.status(HttpStatus.CREATED).body(message);
     }
 
     /** POST /api/chat/conversations — Create or get conversation for a listing */
@@ -62,7 +63,7 @@ public class ChatController {
             @RequestParam UUID listingId,
             @AuthenticationPrincipal UUID currentUserId) {
         Conversation conv = chatService.getOrCreateConversation(listingId, currentUserId);
-        return ResponseEntity.ok(mapToResponse(conv));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponse(conv));
     }
 
     private ConversationResponse mapToResponse(Conversation c) {

@@ -9,6 +9,7 @@ import com.roomconnect.modules.listings.dto.ListingResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -87,7 +88,7 @@ public class AdminController {
     public ResponseEntity<User> createUser(
             @AuthenticationPrincipal UUID adminId,
             @Valid @RequestBody AdminCreateUserRequest req) {
-        return ResponseEntity.ok(adminService.createUser(adminId, req));
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createUser(adminId, req));
     }
 
     /** DELETE /api/admin/users/{userId} — Admin deletes a user and all their content */

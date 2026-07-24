@@ -8,6 +8,7 @@ import com.roomconnect.modules.tours.service.SiteVisitService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ public class SiteVisitController {
             @RequestBody RequestTourDto dto) {
         SiteVisit visit = siteVisitService.createVisit(
                 currentUserId, dto.getListingId(), dto.getRequestedTime(), dto.getNotes());
-        return ResponseEntity.ok(visit);
+        return ResponseEntity.status(HttpStatus.CREATED).body(visit);
     }
 
     /** GET /api/tours/visitor — Get visitor's tours */

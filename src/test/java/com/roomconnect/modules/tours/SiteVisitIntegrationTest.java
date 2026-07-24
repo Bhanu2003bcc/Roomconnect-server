@@ -113,7 +113,7 @@ public class SiteVisitIntegrationTest {
                 .header("Authorization", "Bearer " + visitorToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("requested"));
 
         assertFalse(siteVisitRepository.findAll().isEmpty());

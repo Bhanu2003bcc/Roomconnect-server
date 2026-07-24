@@ -106,7 +106,7 @@ public class ChatIntegrationTest {
         mockMvc.perform(post("/api/chat/conversations")
                 .header("Authorization", "Bearer " + visitorToken)
                 .param("listingId", listing.getId().toString()))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.listingId").value(listing.getId().toString()))
                 .andExpect(jsonPath("$.visitorId").value(visitor.getId().toString()))
                 .andExpect(jsonPath("$.ownerId").value(owner.getId().toString()));
@@ -135,7 +135,7 @@ public class ChatIntegrationTest {
         mockMvc.perform(post("/api/chat/conversations")
                 .header("Authorization", "Bearer " + visitorToken)
                 .param("listingId", listing.getId().toString()))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         // 2. Delete the listing
         listingRepository.delete(listing);

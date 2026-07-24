@@ -105,7 +105,7 @@ public class AlertIntegrationTest {
                 .header("Authorization", "Bearer " + visitorToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(filters)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
         assertFalse(savedSearchRepository.findAll().isEmpty());

@@ -68,7 +68,7 @@ public class AuthIntegrationTest {
         mockMvc.perform(post("/api/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signupRequest)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         assertTrue(userRepository.existsByPhone("+919999999999"));
 

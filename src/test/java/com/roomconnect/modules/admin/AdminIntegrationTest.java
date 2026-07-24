@@ -131,7 +131,7 @@ public class AdminIntegrationTest {
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.phone").value("+918888888888"))
                 .andExpect(jsonPath("$.role").value("owner"))
                 .andReturn().getResponse().getContentAsString();

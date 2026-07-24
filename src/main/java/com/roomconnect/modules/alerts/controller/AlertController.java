@@ -4,6 +4,7 @@ import com.roomconnect.modules.alerts.entity.SavedSearch;
 import com.roomconnect.modules.alerts.service.AlertService;
 import com.roomconnect.modules.search.dto.SearchRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,7 +27,7 @@ public class AlertController {
             @AuthenticationPrincipal UUID currentUserId,
             @RequestBody SearchRequest filters) {
         SavedSearch ss = alertService.saveSearch(currentUserId, filters);
-        return ResponseEntity.ok(ss);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ss);
     }
 
     /** GET /api/alerts — List visitor's saved searches */
