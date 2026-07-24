@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ListingMediaRepository extends JpaRepository<ListingMedia, UUID> {
     List<ListingMedia> findByListingIdOrderBySortOrderAsc(UUID listingId);
+    List<ListingMedia> findByListingIdAndProcessingStatusOrderBySortOrderAsc(UUID listingId, String processingStatus);
     int countByListingId(UUID listingId);
 }

@@ -193,7 +193,8 @@ public class MediaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Media not found: " + mediaId));
 
         media.setProcessingStatus("done");
-        media.setThumbnailUrl(generateThumbnailKey(media.getCdnUrl()));
+        // Thumbnail defaults to original uploaded CDN key since no background thumbnail processor exists
+        media.setThumbnailUrl(media.getCdnUrl());
         mediaRepository.save(media);
         log.info("Media {} confirmed for listing {}", mediaId, listingId);
     }
@@ -206,7 +207,7 @@ public class MediaService {
 
         s3Client.deleteObject(DeleteObjectRequest.builder()
                 .bucket(bucket).key(media.getCdnUrl()).build());
-        if (media.getThumbnailUrl() != null) {
+        if (media.getThumbnailUrl() != null && !media.getThumbnailUrl().equals(media.getCdnUrl())) {
             s3Client.deleteObject(DeleteObjectRequest.builder()
                     .bucket(bucket).key(media.getThumbnailUrl()).build());
         }
@@ -215,7 +216,7 @@ public class MediaService {
 
     @Transactional(readOnly = true)
     public List<ListingMedia> getListingMedia(UUID listingId) {
-        return mediaRepository.findByListingIdOrderBySortOrderAsc(listingId);
+        return mediaRepository.findByListingIdAndProcessingStatusOrderBySortOrderAsc(listingId, "done");
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

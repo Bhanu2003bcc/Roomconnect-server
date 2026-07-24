@@ -143,8 +143,9 @@ public class SearchService {
                 .map(m -> {
                     ListingResponse.MediaItem item = new ListingResponse.MediaItem();
                     item.setId(m.getId());
+                    String thumbKey = m.getThumbnailKey() != null && !m.getThumbnailKey().isBlank() ? m.getThumbnailKey() : m.getFileKey();
                     item.setUrl(mediaService.getPublicUrl(m.getFileKey()));
-                    item.setThumbnailUrl(mediaService.getPublicUrl(m.getThumbnailKey()));
+                    item.setThumbnailUrl(mediaService.getPublicUrl(thumbKey));
                     item.setSortOrder(m.getSortOrder());
                     return item;
                 }).toList();
