@@ -21,6 +21,8 @@ services:
     environment:
       MINIO_ROOT_USER: dev_access_key
       MINIO_ROOT_PASSWORD: dev_secret_key
+      # Allow browser direct uploads from the Angular dev server
+      MINIO_CORS_ALLOW_ORIGIN: "http://localhost:4200"
     ports:
       - "9000:9000"
       - "9001:9001"
