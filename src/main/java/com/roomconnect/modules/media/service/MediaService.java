@@ -17,11 +17,14 @@ import software.amazon.awssdk.services.s3.model.CORSConfiguration;
 import software.amazon.awssdk.services.s3.model.CORSRule;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutBucketCorsRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
@@ -235,16 +238,47 @@ public class MediaService {
     }
 
     public String getPublicUrl(String fileKey) {
-        if (fileKey == null) return null;
-        if (publicUrl != null && !publicUrl.isBlank()) {
+        if (fileKey == null || fileKey.isBlank()) return null;
+
+        // 1. If publicUrl is configured (e.g. R2 public dev domain pub-xxx.r2.dev or custom domain), use it directly
+        if (publicUrl != null && !publicUrl.isBlank() && !publicUrl.contains(".r2.cloudflarestorage.com")) {
             String base = publicUrl.endsWith("/") ? publicUrl : publicUrl + "/";
             return base + fileKey;
         }
-        if (endpoint != null && !endpoint.isBlank()) {
+
+        // 2. Local MinIO dev server (http://localhost:9000) allows direct public read if configured
+        if (endpoint != null && endpoint.contains("localhost")) {
             String base = endpoint.endsWith("/") ? endpoint : endpoint + "/";
             return base + bucket + "/" + fileKey;
         }
-        return fileKey;
+
+        // 3. For Cloudflare R2 S3 API endpoints (*.r2.cloudflarestorage.com) or private buckets:
+        // Generate presigned GET URL so browsers can download/render the image directly without AccessDenied S3 XML error
+        try {
+            GetObjectRequest getReq = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileKey)
+                    .build();
+
+            PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(
+                    GetObjectPresignRequest.builder()
+                            .signatureDuration(Duration.ofHours(24))
+                            .getObjectRequest(getReq)
+                            .build());
+
+            return presigned.url().toString();
+        } catch (Exception e) {
+            log.warn("Failed to generate presigned GET URL for key {}: {}", fileKey, e.getMessage());
+            if (publicUrl != null && !publicUrl.isBlank()) {
+                String base = publicUrl.endsWith("/") ? publicUrl : publicUrl + "/";
+                return base + fileKey;
+            }
+            if (endpoint != null && !endpoint.isBlank()) {
+                String base = endpoint.endsWith("/") ? endpoint : endpoint + "/";
+                return base + bucket + "/" + fileKey;
+            }
+            return fileKey;
+        }
     }
 
     public record PresignResult(UUID mediaId, String fileKey, String uploadUrl) {}

@@ -94,14 +94,39 @@ public class MediaServiceTest {
     }
 
     @Test
-    public void testGetPublicUrl_shouldFormValidUrl() {
+    public void testGetPublicUrl_withPublicDevDomain_shouldFormDirectUrl() {
         // Arrange
-        ReflectionTestUtils.setField(mediaService, "publicUrl", "https://pub-r2.cloudflarestorage.com");
+        ReflectionTestUtils.setField(mediaService, "publicUrl", "https://pub-xxxx.r2.dev");
 
         // Act
         String result = mediaService.getPublicUrl("listings/123/image1.jpg");
 
         // Assert
-        org.junit.jupiter.api.Assertions.assertEquals("https://pub-r2.cloudflarestorage.com/listings/123/image1.jpg", result);
+        org.junit.jupiter.api.Assertions.assertEquals("https://pub-xxxx.r2.dev/listings/123/image1.jpg", result);
+    }
+
+    @Test
+    public void testGetPublicUrl_withR2ApiEndpoint_shouldGeneratePresignedGetUrl() {
+        // Arrange
+        ReflectionTestUtils.setField(mediaService, "publicUrl", "");
+        ReflectionTestUtils.setField(mediaService, "endpoint", "https://accountid.r2.cloudflarestorage.com");
+        ReflectionTestUtils.setField(mediaService, "bucket", "rc-bucket");
+
+        software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest presignedMock =
+                mock(software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest.class);
+        try {
+            when(presignedMock.url()).thenReturn(new java.net.URI("https://accountid.r2.cloudflarestorage.com/rc-bucket/listings/123/image1.jpg?X-Amz-Signature=sig123").toURL());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        when(s3Presigner.presignGetObject(any(software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest.class)))
+                .thenReturn(presignedMock);
+
+        // Act
+        String result = mediaService.getPublicUrl("listings/123/image1.jpg");
+
+        // Assert
+        org.junit.jupiter.api.Assertions.assertTrue(result.contains("X-Amz-Signature"));
     }
 }
