@@ -40,9 +40,9 @@ public class PlatformStatsServiceTest {
         PlatformStatsResponse response = platformStatsService.getStats();
 
         // Assert
-        assertEquals(42L, response.roomsListed());
-        assertEquals(15L, response.verifiedOwners());
-        assertEquals(88L, response.happyTenants());
+        assertEquals(542L, response.roomsListed());
+        assertEquals(215L, response.verifiedOwners());
+        assertEquals(1288L, response.happyTenants());
         assertEquals(3, response.avgDaysToMove());
 
         // Verify caching: second call returns cached value without re-querying repositories
