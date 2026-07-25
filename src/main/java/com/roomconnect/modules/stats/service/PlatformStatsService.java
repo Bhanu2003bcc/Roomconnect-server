@@ -1,10 +1,10 @@
 package com.roomconnect.modules.stats.service;
 
+import com.roomconnect.modules.auth.entity.Role;
+import com.roomconnect.modules.auth.repository.UserRepository;
 import com.roomconnect.modules.listings.entity.ListingStatus;
 import com.roomconnect.modules.listings.repository.ListingRepository;
 import com.roomconnect.modules.stats.dto.PlatformStatsResponse;
-import com.roomconnect.modules.users.repository.OwnerProfileRepository;
-import com.roomconnect.modules.users.repository.VisitorProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,17 +18,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PlatformStatsService {
 
     private final ListingRepository listingRepository;
-    private final OwnerProfileRepository ownerProfileRepository;
-    private final VisitorProfileRepository visitorProfileRepository;
+    private final UserRepository userRepository;
 
     /** Simple in-memory cache: refresh at most once every 30 seconds. */
     private final AtomicReference<CachedStats> cache = new AtomicReference<>();
 
     private static final long CACHE_TTL_MS = 30_000L;
-    private static final long BASELINE_ROOMS   = 500L;
-    private static final long BASELINE_OWNERS  = 200L;
-    private static final long BASELINE_TENANTS = 1200L;
-    private static final int  AVG_DAYS_TO_MOVE = 3;
+    private static final int AVG_DAYS_TO_MOVE = 3;
 
     public PlatformStatsResponse getStats() {
         CachedStats cached = cache.get();
@@ -36,13 +32,9 @@ public class PlatformStatsService {
             return cached.stats();
         }
 
-        long dbRooms   = listingRepository.countByStatus(ListingStatus.AVAILABLE);
-        long dbOwners  = ownerProfileRepository.count();
-        long dbTenants = visitorProfileRepository.count();
-
-        long rooms   = BASELINE_ROOMS + dbRooms;
-        long owners  = BASELINE_OWNERS + dbOwners;
-        long tenants = BASELINE_TENANTS + dbTenants;
+        long rooms   = listingRepository.countByStatus(ListingStatus.AVAILABLE);
+        long owners  = userRepository.countByRoleAndPhoneVerifiedTrue(Role.owner);
+        long tenants = userRepository.countByRoleAndPhoneVerifiedTrue(Role.visitor);
 
         PlatformStatsResponse stats = new PlatformStatsResponse(rooms, owners, tenants, AVG_DAYS_TO_MOVE);
         cache.set(new CachedStats(stats, Instant.now().toEpochMilli()));
@@ -50,5 +42,6 @@ public class PlatformStatsService {
         return stats;
     }
 
-    private record CachedStats(PlatformStatsResponse stats, long fetchedAt) {}
+    private record CachedStats(PlatformStatsResponse stats, long fetchedAt) {
+    }
 }

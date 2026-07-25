@@ -1,10 +1,10 @@
 package com.roomconnect.modules.stats.service;
 
+import com.roomconnect.modules.auth.entity.Role;
+import com.roomconnect.modules.auth.repository.UserRepository;
 import com.roomconnect.modules.listings.entity.ListingStatus;
 import com.roomconnect.modules.listings.repository.ListingRepository;
 import com.roomconnect.modules.stats.dto.PlatformStatsResponse;
-import com.roomconnect.modules.users.repository.OwnerProfileRepository;
-import com.roomconnect.modules.users.repository.VisitorProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,33 +21,32 @@ public class PlatformStatsServiceTest {
     private ListingRepository listingRepository;
 
     @Mock
-    private OwnerProfileRepository ownerProfileRepository;
-
-    @Mock
-    private VisitorProfileRepository visitorProfileRepository;
+    private UserRepository userRepository;
 
     @InjectMocks
     private PlatformStatsService platformStatsService;
 
     @Test
     public void testGetStats_shouldReturnRealDatabaseCounts() {
-        // Arrange
+        // Arrange — raw DB counts, no baseline inflation
         when(listingRepository.countByStatus(ListingStatus.AVAILABLE)).thenReturn(42L);
-        when(ownerProfileRepository.count()).thenReturn(15L);
-        when(visitorProfileRepository.count()).thenReturn(88L);
+        when(userRepository.countByRoleAndPhoneVerifiedTrue(Role.owner)).thenReturn(15L);
+        when(userRepository.countByRoleAndPhoneVerifiedTrue(Role.visitor)).thenReturn(88L);
 
         // Act
         PlatformStatsResponse response = platformStatsService.getStats();
 
-        // Assert
-        assertEquals(542L, response.roomsListed());
-        assertEquals(215L, response.verifiedOwners());
-        assertEquals(1288L, response.happyTenants());
+        // Assert — exactly what the DB returns, no offsets added
+        assertEquals(42L, response.roomsListed());
+        assertEquals(15L, response.verifiedOwners());
+        assertEquals(88L, response.happyTenants());
         assertEquals(3, response.avgDaysToMove());
 
-        // Verify caching: second call returns cached value without re-querying repositories
+        // Verify caching: second call should NOT re-query the repositories
         PlatformStatsResponse cachedResponse = platformStatsService.getStats();
         assertEquals(response, cachedResponse);
         verify(listingRepository, times(1)).countByStatus(ListingStatus.AVAILABLE);
+        verify(userRepository, times(1)).countByRoleAndPhoneVerifiedTrue(Role.owner);
+        verify(userRepository, times(1)).countByRoleAndPhoneVerifiedTrue(Role.visitor);
     }
 }
