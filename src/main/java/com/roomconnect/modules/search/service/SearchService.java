@@ -47,9 +47,9 @@ public class SearchService {
 
         if (req.getCategory() != null) {
             sql.append(" AND l.category = ?");
-            params.add(req.getCategory().name());
+            params.add(req.getCategory().getValue());
         }
-        if (req.getGenderPreference() != null) {
+        if (req.getGenderPreference() != null && req.getGenderPreference() != GenderPreference.any) {
             sql.append(" AND l.gender_preference IN ('any', ?)");
             params.add(req.getGenderPreference().name());
         }
@@ -67,7 +67,7 @@ public class SearchService {
         if (Boolean.TRUE.equals(req.getFoodIncluded())) { sql.append(" AND l.food_included = true"); }
         if (req.getAc() != null) {
             sql.append(" AND l.ac = ?");
-            params.add(req.getAc().name());
+            params.add(req.getAc().getValue());
         }
         if (req.getBathroomType() != null) {
             sql.append(" AND l.bathroom_type = ?");
