@@ -1,6 +1,6 @@
 package com.roomconnect.shared.middleware;
 
-import com.roomconnect.modules.auth.service.JwtService;
+import com.roomconnect.services.JwtService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

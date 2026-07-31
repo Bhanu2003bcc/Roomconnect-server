@@ -1,16 +1,16 @@
 package com.roomconnect.modules.tours;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.roomconnect.modules.auth.entity.Role;
-import com.roomconnect.modules.auth.entity.User;
-import com.roomconnect.modules.auth.repository.UserRepository;
-import com.roomconnect.modules.auth.service.JwtService;
-import com.roomconnect.modules.listings.entity.Category;
-import com.roomconnect.modules.listings.entity.Listing;
-import com.roomconnect.modules.listings.repository.ListingRepository;
-import com.roomconnect.modules.tours.controller.SiteVisitController.RequestTourDto;
-import com.roomconnect.modules.tours.entity.SiteVisit;
-import com.roomconnect.modules.tours.repository.SiteVisitRepository;
+import com.roomconnect.models.Role;
+import com.roomconnect.models.User;
+import com.roomconnect.repositories.UserRepository;
+import com.roomconnect.services.JwtService;
+import com.roomconnect.models.Category;
+import com.roomconnect.models.Listing;
+import com.roomconnect.repositories.ListingRepository;
+import com.roomconnect.controllers.SiteVisitController.RequestTourDto;
+import com.roomconnect.models.SiteVisit;
+import com.roomconnect.repositories.SiteVisitRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

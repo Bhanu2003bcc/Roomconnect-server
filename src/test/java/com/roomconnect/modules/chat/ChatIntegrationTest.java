@@ -1,16 +1,16 @@
 package com.roomconnect.modules.chat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.roomconnect.modules.auth.entity.Role;
-import com.roomconnect.modules.auth.entity.User;
-import com.roomconnect.modules.auth.repository.UserRepository;
-import com.roomconnect.modules.auth.service.JwtService;
-import com.roomconnect.modules.chat.entity.Conversation;
-import com.roomconnect.modules.chat.repository.ConversationRepository;
-import com.roomconnect.modules.chat.repository.MessageRepository;
-import com.roomconnect.modules.listings.entity.Category;
-import com.roomconnect.modules.listings.entity.Listing;
-import com.roomconnect.modules.listings.repository.ListingRepository;
+import com.roomconnect.models.Role;
+import com.roomconnect.models.User;
+import com.roomconnect.repositories.UserRepository;
+import com.roomconnect.services.JwtService;
+import com.roomconnect.models.Conversation;
+import com.roomconnect.repositories.ConversationRepository;
+import com.roomconnect.repositories.MessageRepository;
+import com.roomconnect.models.Category;
+import com.roomconnect.models.Listing;
+import com.roomconnect.repositories.ListingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

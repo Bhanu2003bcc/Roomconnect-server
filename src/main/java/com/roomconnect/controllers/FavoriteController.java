@@ -1,0 +1,56 @@
+package com.roomconnect.controllers;
+
+import com.roomconnect.models.Favorite;
+import com.roomconnect.services.FavoriteService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/favorites")
+@RequiredArgsConstructor
+public class FavoriteController {
+
+    private final FavoriteService favoriteService;
+
+    /** POST /api/favorites/{listingId} — toggle favorite */
+    @PostMapping("/{listingId}")
+    @PreAuthorize("hasRole('visitor')")
+    public ResponseEntity<Map<String, Object>> toggle(
+            @PathVariable UUID listingId,
+            @AuthenticationPrincipal UUID visitorId) {
+        boolean favorited = favoriteService.toggle(visitorId, listingId);
+        HttpStatus status = favorited ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(Map.of(
+                "listingId", listingId,
+                "favorited", favorited
+        ));
+    }
+
+    /** GET /api/favorites — paginated saved listings */
+    @GetMapping
+    @PreAuthorize("hasRole('visitor')")
+    public ResponseEntity<Page<Favorite>> list(
+            @AuthenticationPrincipal UUID visitorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(favoriteService.getFavorites(visitorId, page, size));
+    }
+
+    /** GET /api/favorites/{listingId}/status */
+    @GetMapping("/{listingId}/status")
+    @PreAuthorize("hasRole('visitor')")
+    public ResponseEntity<Map<String, Boolean>> status(
+            @PathVariable UUID listingId,
+            @AuthenticationPrincipal UUID visitorId) {
+        return ResponseEntity.ok(Map.of("favorited", favoriteService.isFavorited(visitorId, listingId)));
+    }
+}

@@ -1,10 +1,11 @@
 package com.roomconnect.modules.stats.service;
 
-import com.roomconnect.modules.auth.entity.Role;
-import com.roomconnect.modules.auth.repository.UserRepository;
-import com.roomconnect.modules.listings.entity.ListingStatus;
-import com.roomconnect.modules.listings.repository.ListingRepository;
-import com.roomconnect.modules.stats.dto.PlatformStatsResponse;
+import com.roomconnect.models.Role;
+import com.roomconnect.repositories.UserRepository;
+import com.roomconnect.services.PlatformStatsService;
+import com.roomconnect.models.ListingStatus;
+import com.roomconnect.repositories.ListingRepository;
+import com.roomconnect.dto.PlatformStatsResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

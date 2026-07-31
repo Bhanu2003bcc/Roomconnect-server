@@ -1,12 +1,12 @@
 package com.roomconnect.modules.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.roomconnect.modules.auth.dto.*;
-import com.roomconnect.modules.auth.entity.OtpRequest;
-import com.roomconnect.modules.auth.entity.Role;
-import com.roomconnect.modules.auth.entity.User;
-import com.roomconnect.modules.auth.repository.OtpRequestRepository;
-import com.roomconnect.modules.auth.repository.UserRepository;
+import com.roomconnect.dto.*;
+import com.roomconnect.models.OtpRequest;
+import com.roomconnect.models.Role;
+import com.roomconnect.models.User;
+import com.roomconnect.repositories.OtpRequestRepository;
+import com.roomconnect.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

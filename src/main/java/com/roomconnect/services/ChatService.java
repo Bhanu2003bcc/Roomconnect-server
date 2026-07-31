@@ -1,0 +1,118 @@
+package com.roomconnect.services;
+
+
+import com.roomconnect.models.Conversation;
+import com.roomconnect.models.Listing;
+import com.roomconnect.models.Message;
+import com.roomconnect.repositories.ConversationRepository;
+import com.roomconnect.repositories.ListingRepository;
+import com.roomconnect.repositories.MessageRepository;
+import com.roomconnect.shared.exception.ForbiddenException;
+import com.roomconnect.shared.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.*;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ChatService {
+
+    private final ConversationRepository conversationRepository;
+    private final MessageRepository messageRepository;
+    private final ListingRepository listingRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    @Transactional
+    public Conversation getOrCreateConversation(UUID listingId, UUID visitorId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found: " + listingId));
+
+        if (listing.getOwnerId().equals(visitorId)) {
+            throw new IllegalArgumentException("You cannot start a chat on your own property listing.");
+        }
+
+        return conversationRepository.findByListingIdAndVisitorId(listingId, visitorId)
+                .map(conv -> {
+                    if (conv.getListingTitle() == null) {
+                        conv.setListingTitle(listing.getTitle());
+                        conv.setListingAddress(listing.getAddressText());
+                        conv.setListingRent(listing.getRentAmount());
+                        return conversationRepository.save(conv);
+                    }
+                    return conv;
+                })
+                .orElseGet(() -> {
+                    Conversation newConv = Conversation.builder()
+                            .listingId(listingId)
+                            .visitorId(visitorId)
+                            .ownerId(listing.getOwnerId())
+                            .listingTitle(listing.getTitle())
+                            .listingAddress(listing.getAddressText())
+                            .listingRent(listing.getRentAmount())
+                            .createdAt(OffsetDateTime.now())
+                            .lastMessageAt(OffsetDateTime.now())
+                            .build();
+                    return conversationRepository.save(newConv);
+                });
+    }
+
+    @Transactional(readOnly = true)
+    public List<Conversation> getUserConversations(UUID userId) {
+        return conversationRepository.findByOwnerIdOrVisitorIdOrderByLastMessageAtDesc(userId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Message> getConversationMessages(UUID conversationId, UUID requesterId, int page, int size) {
+        Conversation conv = getConversationOrThrow(conversationId);
+        assertParticipant(conv, requesterId);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("sentAt").descending());
+        return messageRepository.findByConversationId(conversationId, pageable);
+    }
+
+    @Transactional
+    public Message saveAndBroadcastMessage(UUID senderId, UUID conversationId, String body) {
+        Conversation conv = getConversationOrThrow(conversationId);
+        assertParticipant(conv, senderId);
+
+        Message message = Message.builder()
+                .conversationId(conversationId)
+                .senderId(senderId)
+                .body(body)
+                .build();
+        Message saved = messageRepository.save(message);
+
+        conv.setLastMessageAt(OffsetDateTime.now());
+        conversationRepository.save(conv);
+
+        // Broadcast to WebSocket subscribers for this conversation
+        String topic = "/topic/conversation/" + conversationId;
+        log.info("Broadcasting message to WebSocket topic: {}", topic);
+        messagingTemplate.convertAndSend(topic, saved);
+
+        // Also notify recipient if they are not listening (in-app alert/badge push)
+        UUID recipientId = conv.getOwnerId().equals(senderId) ? conv.getVisitorId() : conv.getOwnerId();
+        messagingTemplate.convertAndSend("/topic/notifications/" + recipientId, saved);
+
+        return saved;
+    }
+
+    private Conversation getConversationOrThrow(UUID id) {
+        return conversationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found: " + id));
+    }
+
+    private void assertParticipant(Conversation conv, UUID userId) {
+        if (!conv.getOwnerId().equals(userId) && !conv.getVisitorId().equals(userId)) {
+            throw new ForbiddenException("You are not a participant in this conversation");
+        }
+    }
+}

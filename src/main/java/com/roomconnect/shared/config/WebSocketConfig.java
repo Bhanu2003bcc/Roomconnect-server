@@ -1,6 +1,6 @@
 package com.roomconnect.shared.config;
 
-import com.roomconnect.modules.auth.service.JwtService;
+import com.roomconnect.services.JwtService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

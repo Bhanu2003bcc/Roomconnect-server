@@ -1,6 +1,8 @@
 package com.roomconnect.modules.media.service;
 
-import com.roomconnect.modules.media.repository.ListingMediaRepository;
+import com.roomconnect.repositories.ListingMediaRepository;
+import com.roomconnect.services.MediaService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -84,7 +86,7 @@ public class MediaServiceTest {
     @Test
     public void testGetThumbnailKey_whenLegacyThumbSuffixExists_shouldFallbackToCdnUrl() {
         // Arrange
-        com.roomconnect.modules.media.entity.ListingMedia media = com.roomconnect.modules.media.entity.ListingMedia.builder()
+        com.roomconnect.models.ListingMedia media = com.roomconnect.models.ListingMedia.builder()
                 .cdnUrl("listings/123/image1.jpg")
                 .thumbnailUrl("listings/123/image1_thumb.jpg")
                 .build();

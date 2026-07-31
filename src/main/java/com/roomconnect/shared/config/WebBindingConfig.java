@@ -1,6 +1,6 @@
 package com.roomconnect.shared.config;
 
-import com.roomconnect.modules.listings.entity.*;
+import com.roomconnect.models.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistry;
