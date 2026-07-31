@@ -12,5 +12,12 @@ import java.util.UUID;
 public interface ListingMediaRepository extends JpaRepository<ListingMedia, UUID> {
     List<ListingMedia> findByListingIdOrderBySortOrderAsc(UUID listingId);
     List<ListingMedia> findByListingIdAndProcessingStatusOrderBySortOrderAsc(UUID listingId, String processingStatus);
+
+    /**
+     * Batch-loads cover media for a set of listing IDs in a single
+     * WHERE listing_id IN (...) query — eliminates the N+1 pattern in search results.
+     */
+    List<ListingMedia> findByListingIdInAndProcessingStatusOrderBySortOrderAsc(List<UUID> listingIds, String processingStatus);
+
     int countByListingId(UUID listingId);
 }

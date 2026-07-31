@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -220,6 +221,30 @@ public class MediaService {
     @Transactional(readOnly = true)
     public List<ListingMedia> getListingMedia(UUID listingId) {
         return mediaRepository.findByListingIdAndProcessingStatusOrderBySortOrderAsc(listingId, "done");
+    }
+
+    /**
+     * Batch-loads the first ready media item (cover photo) for each listing ID.
+     * Returns a map of listingId → cover ListingMedia for O(1) lookup.
+     * This eliminates the N+1 query pattern in search results: instead of
+     * 1 query per listing, we fire a single WHERE listing_id IN (...) query.
+     */
+    @Transactional(readOnly = true)
+    public Map<UUID, ListingMedia> getListingMediaBatch(List<UUID> listingIds) {
+        if (listingIds == null || listingIds.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+        // Single query: SELECT * FROM listing_media WHERE listing_id IN (...)
+        //               AND processing_status = 'done' ORDER BY sort_order ASC
+        List<ListingMedia> all = mediaRepository
+                .findByListingIdInAndProcessingStatusOrderBySortOrderAsc(listingIds, "done");
+
+        // Keep only the first (lowest sort_order) media per listing
+        Map<UUID, ListingMedia> coverByListingId = new java.util.LinkedHashMap<>();
+        for (ListingMedia m : all) {
+            coverByListingId.putIfAbsent(m.getListingId(), m);
+        }
+        return coverByListingId;
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
